@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binding Process Pending</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow-x: hidden;
+        }
+        
+        body {
+            background-color: #0a0a0a;
+            color: #fff;
+            background-image: url('https://wallpapercave.com/wp/wp6277399.jpg');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: -1;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 20px;
+            background-color: rgba(20, 20, 20, 0.8);
+            animation: fadeIn 1s ease-in-out;
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+        }
+        
+        .logo {
+            width: auto;
+            max-width: 150px;
+            height: auto;
+            animation: glowLogoRed 2s infinite alternate;
+        }
+        
+        .logo img {
+            width: 100%;
+            height: auto;
+            max-height: 80px;
+            object-fit: contain;
+        }
+        
+        @keyframes glowLogoRed {
+            0% { filter: drop-shadow(0 0 5px rgba(255, 0, 0, 0.7)); }
+            100% { filter: drop-shadow(0 0 20px rgba(255, 0, 0, 1)); }
+        }
+        
+        .language-toggle {
+            background: linear-gradient(135deg, #ff6a00, #ff9d00);
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(255, 157, 0, 0.4);
+        }
+        
+        .language-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 157, 0, 0.6);
+        }
+        
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            flex: 1;
+        }
+        
+        .text-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        
+        h1 {
+            font-size: 22px;
+            color: #00cc00;
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #ddd;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        .highlight {
+            color: #ff9d00;
+            font-weight: bold;
+        }
+        
+        .text-block {
+            display: none;
+        }
+        
+        /* POPUP STYLES */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            display: none; /* Hidden by default */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .popup-box {
+            background: #1a1a1a;
+            border: 2px solid #ff3333;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 90%;
+            width: 500px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .popup-icon {
+            font-size: 50px;
+            margin-bottom: 20px;
+        }
+
+        .popup-title {
+            color: #ff3333;
+            font-size: 24px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .popup-message {
+            color: #ccc;
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        /* Loading image animation */
+        .unlock-image {
+            height: 24px;
+            width: auto;
+            animation: loadingYellowGlow 2s infinite;
+        }
+        
+        @keyframes loadingYellowGlow {
+            0% { opacity: 0.7; transform: scale(0.95); filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.7)); }
+            50% { opacity: 1; transform: scale(1.05); filter: drop-shadow(0 0 15px rgba(255, 255, 0, 1)); }
+            100% { opacity: 0.7; transform: scale(0.95); filter: drop-shadow(0 0 5px rgba(255, 255, 0, 0.7)); }
+        }
+        
+        .countdown-container {
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            margin: 30px 0;
+            text-align: center;
+            width: 100%;
+        }
+        
+        .countdown-title {
+            font-size: 1.3rem;
+            color: #ff9d00;
+            margin-bottom: 10px;
+        }
+        
+        .countdown-timer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .countdown-box {
+            background: linear-gradient(135deg, #333, #222);
+            padding: 10px;
+            min-width: 70px;
+        }
+        
+        .countdown-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #ff9d00;
+        }
+        
+        .countdown-label {
+            font-size: 0.8rem;
+            color: #ddd;
+            margin-top: 5px;
+        }
+        
+        .man-image-container {
+            margin-top: 10px;
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .bottom-loading-container {
+            margin: 20px auto 10px auto;
+            text-align: center;
+        }
+        
+        .man-image {
+            max-width: 100%;
+            height: auto;
+            animation: verySlowGlowingEffect 8s infinite alternate;
+        }
+        
+        @keyframes verySlowGlowingEffect {
+            0% { filter: drop-shadow(0 0 5px rgba(0, 204, 0, 0.5)); }
+            100% { filter: drop-shadow(0 0 20px rgba(0, 204, 0, 0.9)); }
+        }
+        
+        @media (max-width: 800px) {
+            .container { padding: 15px; }
+            .content { flex-direction: column; text-align: left; }
+            .header { flex-direction: column; align-items: flex-start; }
+            .language-toggle { margin-top: 15px; align-self: flex-end; }
+            h1 { font-size: 20px; }
+            p { font-size: 16px; }
+            .countdown-timer { flex-wrap: wrap; }
+            .countdown-box { min-width: 60px; }
+            .man-image { width: 100%; max-width: 300px; }
+        }
+        
+        @media (min-width: 801px) {
+            .man-image { max-width: 500px; height: auto; }
+            .content { justify-content: space-between; min-height: calc(100vh - 200px); }
+            .countdown-container { margin-top: auto; margin-bottom: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="popup-overlay" id="failurePopup">
+        <div class="popup-box">
+            <div class="popup-icon">⚠️</div>
+            <div class="popup-title">Binding Failed</div>
+            <div class="popup-message" id="popupMessageText">
+                I am sorry. Usually, the new recovery email binding process works for everyone, but unfortunately, it could not be completed for your account. We tried very hard, but it's not possible. <br><br>
+                <span style="color: #888; font-size: 14px;">Status: Permanently Rejected</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img src="grna_logo.webp" alt="FF Logo">
+            </div>
+            <button class="language-toggle" id="languageToggle">Translate to Hindi</button>
+        </div>
+        
+        <div class="content">
+            <div class="text-container">
+                
+                <div class="text-block" id="englishTextPhase1">
+                    <h1>Dear Player,</h1>
+                    <p>The email ID you entered for the new recovery email binding has gone into a <span class="highlight">pending status</span>. You will need to wait for 7 days.
+                    Normally, this process is instant, but in your case, verification is currently pending. 
+                    <br><br>
+                    <span class="highlight" style="color: #00ff00;">Note:</span> If your email binding is not completed within 7 days, 
+                    <span class="highlight">the amount you paid will be fully refunded</span>. So please do not worry!</p>
+                </div>
+                
+                <div class="text-block" id="hindiTextPhase1">
+                    <h1>Dear Player,</h1>
+                    <p>Aapne jo nayi recovery email ID binding ke liye daali thi, wo abhi <span class="highlight">pending status</span> mein chali gayi hai. Aapko 7 din tak intezaar karna padega.
+                    Aam taur par ye turant ho jaata hai, lekin aapke case mein verification abhi pending hai. 
+                    <br><br>
+                    <span class="highlight" style="color: #00ff00;">Note:</span> Agar 7 din ke andar aapka email binding nahi hota hai, 
+                    to <span class="highlight">aapne jo pay kiya hai wo aapko refund mil jaayega</span>. Isliye chinta na karein!</p>
+                </div>
+
+                <div class="text-block" id="englishTextPhase2">
+                    <h1>Dear Player,</h1>
+                    <p>I am sorry. You waited for 7 days, but the verification process is taking longer than expected. <span class="highlight">Please wait for another 23 days.</span>
+                    We apologize for this delay. Your request is still active.
+                    <br><br>
+                    Rest assured, if your new email ID is not bound within 30 days (Total), 
+                    <span class="highlight">your money will be refunded to you.</span> 
+                    The timer has been updated to 23 days.</p>
+                </div>
+                
+                <div class="text-block" id="hindiTextPhase2">
+                    <h1>Dear Player,</h1>
+                    <p>I am sorry. Aapne 7 din intezaar kiya, lekin process mein aur samay lag raha hai. <span class="highlight">Kripya aur 23 din ruk jaaiye.</span>
+                    Is deri ke liye humein khed hai. Aapka request abhi bhi active hai.
+                    <br><br>
+                    Yakin maniye, agar total 30 din ke andar aapka naya email ID binding nahi hota hai, 
+                    to <span class="highlight">aapka paisa aapko wapas mil jaayega.</span>
+                    Timer ab 23 din ke liye set ho gaya hai.</p>
+                </div>
+
+            </div>
+        
+            <div class="countdown-container">
+                <div class="countdown-title" id="timerTitle">Verification completes in:</div>
+                <div class="countdown-timer">
+                    <div class="countdown-box">
+                        <div class="countdown-value" id="days">0</div>
+                        <div class="countdown-label">Days</div>
+                    </div>
+                    <div class="countdown-box">
+                        <div class="countdown-value" id="hours">0</div>
+                        <div class="countdown-label">Hours</div>
+                    </div>
+                    <div class="countdown-box">
+                        <div class="countdown-value" id="minutes">0</div>
+                        <div class="countdown-label">Minutes</div>
+                    </div>
+                    <div class="countdown-box">
+                        <div class="countdown-value" id="seconds">0</div>
+                        <div class="countdown-label">Seconds</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bottom-loading-container">
+                <img class="unlock-image" src="loding.png" alt="Loading">
+            </div>
+            
+            <div class="man-image-container">
+                <img class="man-image" src="man.gif" alt="Man GIF">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const languageToggle = document.getElementById('languageToggle');
+            const daysElement = document.getElementById('days');
+            const hoursElement = document.getElementById('hours');
+            const minutesElement = document.getElementById('minutes');
+            const secondsElement = document.getElementById('seconds');
+            const timerTitle = document.getElementById('timerTitle');
+            const failurePopup = document.getElementById('failurePopup');
+            const popupMessageText = document.getElementById('popupMessageText');
+
+            // Text Blocks
+            const enPhase1 = document.getElementById('englishTextPhase1');
+            const hiPhase1 = document.getElementById('hindiTextPhase1');
+            const enPhase2 = document.getElementById('englishTextPhase2');
+            const hiPhase2 = document.getElementById('hindiTextPhase2');
+            
+            // State
+            let isEnglish = true;
+            let currentPhase = 1; 
+
+            // --- TIMER LOGIC ---
+            const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+            const TWENTY_THREE_DAYS_MS = 23 * 24 * 60 * 60 * 1000;
+            const TOTAL_DURATION = SEVEN_DAYS_MS + TWENTY_THREE_DAYS_MS;
+
+            function getDeviceId() {
+                let id = localStorage.getItem('bindingDeviceId_v2');
+                if (!id) {
+                    id = 'user_' + Math.random().toString(36).substr(2, 9);
+                    localStorage.setItem('bindingDeviceId_v2', id);
+                }
+                return id;
+            }
+            const deviceId = getDeviceId();
+
+            function getStartTime() {
+                let start = localStorage.getItem(`bindingStart_v2_${deviceId}`);
+                if (!start) {
+                    start = Date.now().toString();
+                    localStorage.setItem(`bindingStart_v2_${deviceId}`, start);
+                }
+                return parseInt(start);
+            }
+            
+            const startTime = getStartTime();
+
+            function updateDisplay() {
+                const now = Date.now();
+                const timePassed = now - startTime;
+                
+                let targetTime;
+                let timeLeft;
+                let isComplete = false;
+
+                // Check Phase
+                if (timePassed < SEVEN_DAYS_MS) {
+                    // PHASE 1
+                    currentPhase = 1;
+                    targetTime = startTime + SEVEN_DAYS_MS;
+                    timeLeft = targetTime - now;
+                } else if (timePassed < TOTAL_DURATION) {
+                    // PHASE 2
+                    currentPhase = 2;
+                    targetTime = startTime + TOTAL_DURATION;
+                    timeLeft = targetTime - now;
+                } else {
+                    // COMPLETED / FAILED
+                    currentPhase = 3; // Finished
+                    timeLeft = 0;
+                    isComplete = true;
+                }
+
+                // Update Timer Numbers
+                if (timeLeft < 0) timeLeft = 0;
+                
+                const d = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const h = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((timeLeft % (1000 * 60)) / 1000);
+
+                daysElement.textContent = d;
+                hoursElement.textContent = h;
+                minutesElement.textContent = m;
+                secondsElement.textContent = s;
+
+                // Update UI visibility
+                updateTextVisibility();
+
+                // TRIGGER POPUP IF COMPLETE
+                if (isComplete) {
+                    showFailurePopup();
+                }
+            }
+
+            function showFailurePopup() {
+                failurePopup.style.display = 'flex';
+                // Set popup language
+                if (isEnglish) {
+                    popupMessageText.innerHTML = `I am sorry. Usually, the new recovery email binding process works for everyone, but unfortunately, it could not be completed for your account.<br>We tried very hard, but it's not possible.<br>I am sorry.<br><br><span style="color: #888; font-size: 14px;">Status: Failed</span>`;
+                } else {
+                    popupMessageText.innerHTML = `I am sorry. Aam taur par sabka new recovery email binding ho jata hai, lekin durbhagya se aapka nahi ho paya.<br>Humne bahut koshish ki, par ye sambhav nahi hai.<br>I am sorry.<br><br><span style="color: #888; font-size: 14px;">Status: Failed</span>`;
+                }
+            }
+
+            function updateTextVisibility() {
+                // If popup is showing, keep background consistent
+                if (currentPhase === 3) {
+                    showFailurePopup(); 
+                    return;
+                }
+
+                enPhase1.style.display = 'none';
+                hiPhase1.style.display = 'none';
+                enPhase2.style.display = 'none';
+                hiPhase2.style.display = 'none';
+
+                if (currentPhase === 1) {
+                    timerTitle.textContent = "Verification completes in:";
+                    if (isEnglish) enPhase1.style.display = 'block';
+                    else hiPhase1.style.display = 'block';
+                } else if (currentPhase === 2) {
+                    timerTitle.textContent = "Extended verification time:";
+                    if (isEnglish) enPhase2.style.display = 'block';
+                    else hiPhase2.style.display = 'block';
+                }
+            }
+
+            // Language Toggle
+            languageToggle.addEventListener('click', function() {
+                isEnglish = !isEnglish;
+                languageToggle.textContent = isEnglish ? 'Translate to Hindi' : 'Translate to English';
+                updateTextVisibility(); // This will also update popup language if open
+            });
+
+            // Run Loop
+            setInterval(updateDisplay, 1000);
+            updateDisplay(); 
+
+            // Prevent right click
+            document.addEventListener('contextmenu', e => e.preventDefault());
+        });
+    </script>
+</body>
+</html>
